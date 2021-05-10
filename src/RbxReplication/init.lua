@@ -1,17 +1,19 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Shared = ReplicatedStorage:WaitForChild(script.Name .. "Shared")
+local Paths = require(script.Paths)
+local RbxAPI = require(Paths.Client.RbxAPI)
+local ReplicatorClass = require(Paths.Server.Classes.Replicator)
 
-local owners = {}
+local replicators = {}
 
 local module = {}
 
-function module.SetOwner(player, instance, properties)
-	owners[instance] = player
-	Shared.Remotes.Push:FireClient(player, instance, properties)
-end
+function module.GetReplicator(instance)
+	if replicators[instance] then
+		return replicators[instance]
+	end
 
-function module.GetOwner(instance)
-	return owners[instance]
+	local replicator = ReplicatorClass.new(instance)
+	replicators[instance] = replicator
+	return replicator
 end
 
 return module

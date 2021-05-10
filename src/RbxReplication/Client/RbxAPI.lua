@@ -70,7 +70,7 @@ local function process()
 				end
 
 				if writable then
-					table.insert(properties, member.Name)
+					properties[member.Name] = true
 				end
 			end
 		end
