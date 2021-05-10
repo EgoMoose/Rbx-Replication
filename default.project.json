@@ -1,0 +1,11 @@
+{
+	"name": "Rbx-Replication",
+	"tree": {
+		"$className": "DataModel",
+
+		"ServerScriptService": {
+			"$path": "src",
+			"$className": "ServerScriptService"
+		}
+	}
+}
