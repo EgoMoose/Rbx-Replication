@@ -8,6 +8,7 @@ local IGNORE_TAGS = {
 	ReadOnly = true,
 	Deprecated = true,
 	Hidden = true,
+	NotScriptable = true,
 }
 
 local module = {}

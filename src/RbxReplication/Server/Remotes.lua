@@ -4,6 +4,8 @@ local Core = script.Parent.Parent
 local Shared = ReplicatedStorage:WaitForChild(Core.Name .. "Shared")
 local RemotesFolder = Shared.Remotes
 
+local RbxReplication = require(Core)
+
 local function createRemote(options)
 	local remote = Instance.new(options.Type)
 
@@ -29,6 +31,17 @@ createRemote({
 	Parent = RemotesFolder,
 	Callback = function(remote, player)
 
+	end,
+})
+
+createRemote({
+	Type = "RemoteEvent",
+	Name = "Push",
+	Parent = RemotesFolder,
+	Callback = function(remote, player, instance, property, value)
+		if RbxReplication.GetOwner(instance) == player then
+			instance[property] = value
+		end
 	end,
 })
 
