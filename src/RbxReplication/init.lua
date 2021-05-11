@@ -1,7 +1,10 @@
-local Paths = require(script.Modules.Paths)
-local RbxAPI = require(Paths.Client.Modules.RbxAPI)
-local Remotes = require(Paths.Server.Modules.Remotes)
-local t = require(Paths.Client.Utility.t)
+local Utility = script.Utility
+local t = require(Utility.t)
+
+local module = {}
+local replicators = {}
+
+-- Class
 
 local ReplicatorClass = {}
 ReplicatorClass.__index = ReplicatorClass
@@ -10,65 +13,79 @@ ReplicatorClass.ClassName = "Replicator"
 function ReplicatorClass.new(instance)
 	local self = setmetatable({}, ReplicatorClass)
 
-	self._properties = true
+	self._properties = {}
 
 	self.Instance = instance
-	self.Owner = nil
 
 	return self
 end
 
--- Private
+-- Private Methods
 
 local validateProperties = t.map(
-	t.string, 
+	t.string,
 	t.union(t.boolean, t.callback)
 )
 
--- Public
+local function defaultValidate(instance, property, value)
+	return true, value
+end
 
-function ReplicatorClass:SetNetworkOwner(player)
-	if self.Owner then
-		Remotes.ClaimOwnership:FireClient(
-			self.Owner,
-			self.Instance,
-			false
-		)
+-- Public Methods
+
+function ReplicatorClass:SetOwner(owner, properties)
+	if properties == "All" then
+		properties = module._context.RbxAPI.GetWritableProperties(self.Instance.ClassName)
 	end
 
-	self.Owner = player
+	assert(validateProperties(properties), "Properties failed to validate.")
 
-	if self.Owner then
-		Remotes.ClaimOwnership:FireClient(
-			self.Owner,
-			self.Instance,
-			self._properties
-		)
+	local changed = {}
+	for property, validate in pairs(properties) do
+		local prevOwner = self._properties[property]
+		if prevOwner then
+			changed[prevOwner] = true
+		end
+
+		if owner then
+			changed[owner] = true
+		end
+
+		self._properties[property] = {
+			owner = owner,
+			validate = t.callback(validate) and validate or defaultValidate,
+		}
+	end
+
+	for player, _ in pairs(changed) do
+		local send = {}
+		local count = 0
+		for property, data in pairs(self._properties) do
+			if data.owner == player then
+				count = count + 1
+				send[count] = module._context.RbxAPI.GetPropertyIndex(property)
+			end
+		end
+
+		module._context.Remotes.Push:FireClient(player, self.Instance, send)
 	end
 end
 
-function ReplicatorClass:SetReplicatedProperties(properties)
-	if properties == "All" then
-		properties = true
-	else
-		assert(validateProperties(properties), "Properties failed validation.")
-	end
+function ReplicatorClass:Push(player, pool)
+	assert(player and player:IsA("Player"), "Player must be a valid player object.")
 
-	self._properties = properties
-
-	if self.Owner then
-		Remotes.ClaimOwnership:FireClient(
-			self.Owner, 
-			self.Instance, 
-			self._properties
-		)
+	for property, value in pairs(pool) do
+		local data = self._properties[property]
+		if data.owner == player then
+			local success, transform = data.validate(self.Instance, property, value)
+			if success then
+				self.Instance[property] = transform
+			end
+		end
 	end
 end
 
 -- Public Module
-
-local module = {}
-local replicators = {}
 
 function module.GetReplicator(instance)
 	if not replicators[instance] then
@@ -77,12 +94,8 @@ function module.GetReplicator(instance)
 	return replicators[instance]
 end
 
-function module.GetOwner(instance)
-	if replicators[instance] then
-		return replicators[instance].Owner
-	end
+function module.IsReady(yield)
+	return module._context.IsReady(yield)
 end
-
-Remotes.Register(module)
 
 return module

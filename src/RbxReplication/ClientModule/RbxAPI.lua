@@ -12,11 +12,15 @@ local IGNORE_TAGS = {
 }
 
 local module = {}
+local loaded = false
+local loadedSignal = Instance.new("BindableEvent")
 
 local API = nil
 local classes = {}
 local subclasses = {}
 local members = {}
+local propertyIndices = {}
+local indicesProperty = {}
 local writableProperties = {}
 
 -- Private
@@ -55,6 +59,7 @@ local function process()
 		members[entry.Name] = entryMembers
 	end
 
+	local existing = {}
 	for className, entryMembers in pairs(members) do
 		local properties = {}
 		for _, member in pairs(entryMembers) do
@@ -70,11 +75,19 @@ local function process()
 				end
 
 				if writable then
+					existing[member.Name] = true
 					properties[member.Name] = true
 				end
 			end
 		end
 		writableProperties[className] = properties
+	end
+
+	local count = 0
+	for property, _ in pairs(existing) do
+		count = count + 1
+		indicesProperty[count] = property
+		propertyIndices[property] = count
 	end
 end
 
@@ -130,27 +143,58 @@ local function fetchAPI()
 	API = HttpService:JSONDecode(dump)
 end
 
+local function waitForReady()
+	while not loaded do
+		loadedSignal.Event:Wait()
+	end
+end
+
 -- Public
 
 function module.GetClassEntry(className)
+	waitForReady()
 	return classes[className]
 end
 
 function module.GetSubclasses(className)
+	waitForReady()
 	return subclasses[className]
 end
 
 function module.GetMembers(className)
+	waitForReady()
 	return members[className]
 end
 
 function module.GetWritableProperties(className)
+	waitForReady()
 	return writableProperties[className]
+end
+
+function module.GetIndexProperty(index)
+	waitForReady()
+	return indicesProperty[index]
+end
+
+function module.GetPropertyIndex(property)
+	waitForReady()
+	return propertyIndices[property]
+end
+
+function module.IsLoaded(yield)
+	if yield then
+		waitForReady()
+	end
+	return loaded
 end
 
 --
 
-fetchAPI()
-process()
+coroutine.wrap(function()
+	fetchAPI()
+	process()
+	loaded = true
+	loadedSignal:Fire()
+end)()
 
 return module
