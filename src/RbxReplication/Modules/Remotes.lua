@@ -1,4 +1,4 @@
-local Paths = require(script:FindFirstAncestor("RbxReplication").Paths)
+local Paths = require(script:FindFirstAncestor("RbxReplication").Modules.Paths)
 local RemotesFolder = Paths.Client.Remotes
 
 local function createRemote(options)
@@ -21,6 +21,11 @@ local function createRemote(options)
 end
 
 local module = {}
+local RbxReplication = nil
+
+function module.Register(rbxReplication)
+	RbxReplication = rbxReplication
+end
 
 module.ClaimOwnership = createRemote({
 	Type = "RemoteEvent",
@@ -30,5 +35,17 @@ module.ClaimOwnership = createRemote({
 	end,
 })
 
+module.Push = createRemote({
+	Type = "RemoteEvent",
+	Name = "Push",
+	Callback = function(remote, player, instance, pool)
+		local owner = RbxReplication.GetOwner(instance)
+		if owner == player then
+			for property, value in pairs(pool) do
+				instance[property] = value
+			end
+		end
+	end,
+})
 
 return module

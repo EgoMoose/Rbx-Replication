@@ -1,10 +1,14 @@
 local RbxReplicationClient = script.Parent
 local RemotesFolder = RbxReplicationClient.Remotes
-local RbxAPI = require(RbxReplicationClient.RbxAPI)
+local RbxAPI = require(RbxReplicationClient.Modules.RbxAPI)
+local Nodes = require(RbxReplicationClient.Modules.Nodes)
 
 local module = {}
 
-RemotesFolder:WaitForChild("ClaimOwnership").OnClientEvent:Connect(function(instance, properties)
+module.ClaimOwnership = RemotesFolder:WaitForChild("ClaimOwnership")
+module.Push = RemotesFolder:WaitForChild("Push")
+
+module.ClaimOwnership.OnClientEvent:Connect(function(instance, properties)
 	assert(instance, "Cannot claim ownership of part that is non-existing for client.")
 
 	if properties then
@@ -12,10 +16,10 @@ RemotesFolder:WaitForChild("ClaimOwnership").OnClientEvent:Connect(function(inst
 			properties = RbxAPI.GetWritableProperties(instance.ClassName)
 		end
 
-		print(instance, properties)
-		-- replicate the properties for instance
+		local node = Nodes.GetNode(instance)
+		node:SetReplicatedProperties(properties)
 	else
-		-- stop replicating the properties for instance
+		Nodes.RemoveNode(instance)
 	end
 end)
 

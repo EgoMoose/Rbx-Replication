@@ -7,9 +7,9 @@ local Client = Core.Client
 Client.Name = Core.Name
 Client.Parent = ReplicatedStorage
 
-local clientMain = Client.main
+local clientMain = script.main
 clientMain.Name = Core.Name
 clientMain.Parent = StarterPlayerScripts
 
 -- Startup server
-require(script.Parent)
+require(Core)
