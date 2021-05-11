@@ -73,7 +73,7 @@ function ReplicatorClass:SetOwner(owner, properties)
 	end
 end
 
-function ReplicatorClass:Push(player, pool)
+function ReplicatorClass:_push(player, pool)
 	assert(player and player:IsA("Player"), "Player must be a valid player object.")
 
 	for property, value in pairs(pool) do
@@ -87,7 +87,7 @@ function ReplicatorClass:Push(player, pool)
 	end
 end
 
-function ReplicatorClass:RemoveOwner(player)
+function ReplicatorClass:_removeOwner(player)
 	for property, data in pairs(self._properties) do
 		if data.owner == player then
 			self._properties[property] = nil
@@ -100,7 +100,7 @@ end
 local function init()
 	Players.PlayerRemoving:Connect(function(player)
 		for _, replicator in pairs(replicators) do
-			replicator:RemoveOwner(player)
+			replicator:_removeOwner(player)
 		end
 	end)
 end

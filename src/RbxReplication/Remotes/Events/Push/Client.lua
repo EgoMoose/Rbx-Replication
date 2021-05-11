@@ -8,7 +8,7 @@ return function(player, context, instance, properties)
 	local node = context.Nodes.GetNode(instance)
 	if node then
 		if next(newProperties) then
-			node:SetReplicatedProperties(newProperties)
+			node:_setReplicatedProperties(newProperties)
 		else
 			context.Nodes.RemoveNode(instance)
 		end

@@ -69,9 +69,7 @@ local function compress(nodes)
 	}
 end
 
--- Public Methods
-
-function NodeClass:SetReplicatedProperties(properties)
+function NodeClass:_setReplicatedProperties(properties)
 	assert(validateProperties(properties), "Properties failed validation.")
 
 	self._maid:Sweep()
@@ -91,6 +89,8 @@ function NodeClass:SetReplicatedProperties(properties)
 		poolingUpdate:Fire()
 	end
 end
+
+-- Public Methods
 
 function NodeClass:Replicate()
 	if next(self._pool) then

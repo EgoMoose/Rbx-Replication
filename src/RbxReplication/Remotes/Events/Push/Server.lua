@@ -16,6 +16,6 @@ return function(player, context, compressed)
 
 	for instance, pool in pairs(decompressed) do
 		local replicator = context.RbxReplication.GetReplicator(instance)
-		replicator:Push(player, pool)
+		replicator:_push(player, pool)
 	end
 end
