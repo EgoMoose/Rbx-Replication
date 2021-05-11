@@ -8,6 +8,17 @@ local Promise = require(ClientCore.Utility.Promise)
 local RbxAPI = require(ClientCore.RbxAPI)
 
 local POOLING_DELAY = 0.1
+local PHYSICS_PROPERTIES = {
+	["CFrame"] = true,
+	["Position"] = true,
+	["Rotation"] = true,
+	["Orientation"] = true,
+	["Velocity"] = true,
+	["RotVelocity"] = true,
+	["AssemblyLinearVelocity"] = true,
+	["AssemblyAngularVelocity"] = true,
+}
+
 local poolingUpdate = Signal.new()
 
 -- Class
@@ -20,8 +31,12 @@ function NodeClass.new(instance)
 	local self = setmetatable({}, NodeClass)
 
 	self._maid = Maid.new()
+	self._physicsMaid = Maid.new()
+
 	self._pool = {}
 	self._properties = {}
+	self._isBasePart = instance:IsA("BasePart")
+	self._isPhysicsOwner = false
 
 	self.Automatic = true
 	self.Instance = instance
@@ -76,6 +91,10 @@ function NodeClass:_setReplicatedProperties(properties)
 	self._properties = properties
 
 	for property, _ in pairs(self._properties) do
+		if self._isBasePart and PHYSICS_PROPERTIES[property] then
+			error("Cannot replicate physics properties directly.")
+		end
+
 		self._pool[property] = self.Instance[property]
 		self._maid:Mark(self.Instance:GetPropertyChangedSignal(property):Connect(function()
 			self._pool[property] = self.Instance[property]
@@ -87,6 +106,37 @@ function NodeClass:_setReplicatedProperties(properties)
 
 	if self.Automatic and next(self._pool) then
 		poolingUpdate:Fire()
+	end
+end
+
+function NodeClass:_setPhysicsOwner(status)
+	assert(self._isBasePart, "Cannot set physics owner of non BasePart.")
+
+	self._physicsMaid:Sweep()
+	self._isPhysicsOwner = status
+
+	if self._isPhysicsOwner then
+		local function poolPhysicsProperty(property)
+			if self._isPhysicsOwner and (property == "Anchored" or self.Instance.Anchored) then
+				self._pool[property] = self.Instance[property]
+				return true
+			end
+		end
+
+		for property, _ in pairs(PHYSICS_PROPERTIES) do
+			poolPhysicsProperty(property)
+
+			self._physicsMaid:Mark(self.Instance:GetPropertyChangedSignal(property):Connect(function()
+				local success = poolPhysicsProperty(property)
+				if success and self.Automatic then
+					poolingUpdate:Fire()
+				end
+			end))
+		end
+
+		if self.Automatic and next(self._pool) then
+			poolingUpdate:Fire()
+		end
 	end
 end
 
