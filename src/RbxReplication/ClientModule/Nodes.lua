@@ -93,9 +93,19 @@ function NodeClass:SetReplicatedProperties(properties)
 end
 
 function NodeClass:Replicate()
-	local compressed = compress({self})
-	RemoteFolder.Push:FireServer(compressed)
-	self._pool = {}
+	if next(self._pool) then
+		local compressed = compress({self})
+		RemoteFolder.Push:FireServer(compressed)
+		self._pool = {}
+	end
+end
+
+function NodeClass:GetPropertiesList()
+	local list = {}
+	for property, _ in pairs(self._properties) do
+		table.insert(list, property)
+	end
+	return list
 end
 
 function NodeClass:Destroy()
@@ -141,6 +151,10 @@ function module.GetNode(instance)
 	if not nodes[instance] then
 		nodes[instance] = NodeClass.new(instance)
 	end
+	return nodes[instance]
+end
+
+function module.GetNodeIfExists(instance)
 	return nodes[instance]
 end
 

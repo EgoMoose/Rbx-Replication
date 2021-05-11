@@ -1,3 +1,5 @@
+local Players = game:GetService("Players")
+
 local Utility = script.Utility
 local t = require(Utility.t)
 
@@ -42,9 +44,9 @@ function ReplicatorClass:SetOwner(owner, properties)
 
 	local changed = {}
 	for property, validate in pairs(properties) do
-		local prevOwner = self._properties[property]
-		if prevOwner then
-			changed[prevOwner] = true
+		local prev = self._properties[property]
+		if prev and prev.owner then
+			changed[prev.owner] = true
 		end
 
 		if owner then
@@ -85,6 +87,24 @@ function ReplicatorClass:Push(player, pool)
 	end
 end
 
+function ReplicatorClass:RemoveOwner(player)
+	for property, data in pairs(self._properties) do
+		if data.owner == player then
+			self._properties[property] = nil
+		end
+	end
+end
+
+-- Private Module
+
+local function init()
+	Players.PlayerRemoving:Connect(function(player)
+		for _, replicator in pairs(replicators) do
+			replicator:RemoveOwner(player)
+		end
+	end)
+end
+
 -- Public Module
 
 function module.GetReplicator(instance)
@@ -98,4 +118,5 @@ function module.IsReady(yield)
 	return module._context.IsReady(yield)
 end
 
+init()
 return module
