@@ -6,8 +6,6 @@ local FETCH = "https://raw.githubusercontent.com/CloneTrooper1019/Roblox-Client-
 
 local IGNORE_TAGS = {
 	ReadOnly = true,
-	Deprecated = true,
-	Hidden = true,
 	NotScriptable = true,
 }
 
@@ -65,7 +63,12 @@ local function process()
 		for _, member in pairs(entryMembers) do
 			if member.MemberType == "Property" then
 				local writable = true
-				if member.Tags then
+
+				if member.Security.Write ~= "None" then
+					writable = false
+				end
+
+				if writable and member.Tags then
 					for _, tag in pairs(member.Tags) do
 						if IGNORE_TAGS[tag] then
 							writable = false

@@ -152,6 +152,10 @@ function ReplicatorClass:SetPhysicsOwnership(owner, validation)
 
 	self._physicsOwner = owner
 
+	if not self.Instance.Anchored then
+		self.Instance:SetNetworkOwner(self._physicsOwner)
+	end
+
 	if self._physicsOwner then
 		module._context.Remotes.SetPhysicsOwner:FireClient(self._physicsOwner, self.Instance, true)
 	end
