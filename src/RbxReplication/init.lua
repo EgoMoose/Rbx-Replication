@@ -139,7 +139,7 @@ function ReplicatorClass:SetPropertiesOwnership(owner, properties)
 	end
 end
 
-function ReplicatorClass:SetPhysicsOwnership(owner, validation)
+function ReplicatorClass:SetPhysicsOwnership(owner)
 	assert(self._isBasePart, "Cannot set network owner of non BasePart.")
 
 	local prevOwner = self._physicsOwner

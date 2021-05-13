@@ -60,8 +60,13 @@ local function compress(nodes)
 	for i, node in pairs(nodes) do
 		local compressedPool = {}
 		for property, value in pairs(node._pool) do
+			local lookup = value
+			local tof = typeof(value)
 			local index = RbxAPI.GetPropertyIndex(property)
-			local lookup = (typeof(value) == "Instance") and value or tostring(value)
+
+			if tof ~= "Instance" then
+				lookup = ("%s : %s"):format(tof, tostring(value))
+			end
 
 			if not values[lookup] then
 				count = count + 1
