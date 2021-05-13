@@ -41,7 +41,13 @@ PartReplicator:SetPropertiesOwnership(SomePlayer, {
 	end,
 })
 
--- This method allows you control of physics based properties.
+-- Multiple players can own different properties in the same part
+PartReplicator:SetPropertiesOwnership(OtherPlayer, {
+	Material = true,
+})
+
+-- This method allows you control of physics based properties (CFrame & Velocities)
+-- Physics ownership can only be owned by one player at any given time
 -- Network ownership will be set if the part is unanchored
 PartReplicator:SetPhysicsOwnership(SomePlayer)
 ```
