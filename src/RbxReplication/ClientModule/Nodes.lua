@@ -10,11 +10,6 @@ local RbxAPI = require(ClientCore.RbxAPI)
 local POOLING_DELAY = 0.1
 local PHYSICS_PROPERTIES = {
 	["CFrame"] = true,
-	["Position"] = true,
-	["Rotation"] = true,
-	["Orientation"] = true,
-	["Velocity"] = true,
-	["RotVelocity"] = true,
 	["AssemblyLinearVelocity"] = true,
 	["AssemblyAngularVelocity"] = true,
 }
@@ -205,6 +200,7 @@ end
 function module.GetNode(instance)
 	if not nodes[instance] then
 		nodes[instance] = NodeClass.new(instance)
+		module._context.RbxReplication.InstanceAdded:Fire(instance)
 	end
 	return nodes[instance]
 end
@@ -217,6 +213,7 @@ function module.RemoveNode(instance)
 	if nodes[instance] then
 		nodes[instance]:Destroy()
 		nodes[instance] = nil
+		module._context.RbxReplication.InstanceRemoved:Fire(instance)
 	end
 end
 

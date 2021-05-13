@@ -6,6 +6,8 @@ local FETCH = "https://raw.githubusercontent.com/CloneTrooper1019/Roblox-Client-
 
 local IGNORE_TAGS = {
 	ReadOnly = true,
+	Hidden = true,
+	Deprecated = true,
 	NotScriptable = true,
 }
 
@@ -79,7 +81,7 @@ local function process()
 
 				if writable then
 					existing[member.Name] = true
-					properties[member.Name] = true
+					properties[member.Name] = member
 				end
 			end
 		end

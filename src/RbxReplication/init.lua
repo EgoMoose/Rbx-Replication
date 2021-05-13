@@ -4,11 +4,6 @@ local t = require(script.Utility.t)
 
 local PHYSICS_PROPERTIES = {
 	["CFrame"] = true,
-	["Position"] = true,
-	["Rotation"] = true,
-	["Orientation"] = true,
-	["Velocity"] = true,
-	["RotVelocity"] = true,
 	["AssemblyLinearVelocity"] = true,
 	["AssemblyAngularVelocity"] = true,
 }
@@ -96,9 +91,13 @@ end
 function ReplicatorClass:SetPropertiesOwnership(owner, properties)
 	local isAll = (properties == "All")
 	local isBasePart = self._isBasePart
+	local all = module._context.RbxAPI.GetWritableProperties(self.Instance.ClassName)
 
 	if isAll then
-		properties = module._context.RbxAPI.GetWritableProperties(self.Instance.ClassName)
+		properties = {}
+		for property, _ in pairs(all) do
+			properties[property] = true
+		end
 	end
 
 	assert(validateProperties(properties), "Properties failed to validate.")
@@ -107,6 +106,9 @@ function ReplicatorClass:SetPropertiesOwnership(owner, properties)
 	for property, validate in pairs(properties) do
 		if isBasePart and PHYSICS_PROPERTIES[property] then
 			assert(isAll, "Cannot set property ownership of a physics controlled property. Use :SetPhysicsOwnership() instead.")
+			continue
+		elseif not all[property] then
+			warn(("Cannot replicate %s. It may be hidden or deprecated."):format(property))
 			continue
 		end
 
