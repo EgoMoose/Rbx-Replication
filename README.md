@@ -52,9 +52,3 @@ PartReplicator:SetPropertiesOwnership(OtherPlayer, {
 -- This method only works for BaseParts
 PartReplicator:SetPhysicsOwnership(SomePlayer)
 ```
-
-## Known Issues
-
-One known issue is in relation to physics ownership. Since `NetworkOwnership` already allows control of `BasePart`'s physics replication then it is unnecessary to replicate these properties in those cases. However, when a part is anchored these properties still need to be replicated since an anchored part cannot have NetworkOwnership. This is currently what `RbxReplication` does.
-
-The main issue with the above approach is that in certain cases an unanchored part cannot have its `NetworkOwnership` set. For example, when the `BasePart` instance is welded to an anchored part. The solution in that case would be to replicate the physics properties anyways. However, there is no efficient way to signal when a part is not anchored, but can or cannot set its `NetworkOwnership`. As a result it is possible to get a network ownership error when a player has control of physics ownership.
